@@ -40,9 +40,7 @@ public:
     }
 
     operator std::string() const {
-        std::shared_lock guard0(mu0);
-        std::shared_lock guard1(mu1);
-        std::shared_lock guard2(mu2);
+        std::shared_lock guard0(mu0), guard1(mu1), guard2(mu2);
         std::ostringstream os;
         os << x1 << ", " << x2 << ", " << x3 << std::endl;
         return os.str();
@@ -77,4 +75,33 @@ std::vector<descriptionAction> makeVector(const std::string& path) {
         }
     }
     return act;
+}
+
+void process(ThreeFields& work, const std::vector<descriptionAction>& acts) {
+    for (const auto& act : acts) {
+        if (act.nameAction == "read") {
+            if(act.field == 0) {
+                work.get0();
+            }
+            if (act.field == 1) {
+                work.get1();
+            }
+            if (act.field == 2) {
+                work.get2();
+            }
+        }
+        if (act.nameAction == "write") {
+            if (act.field == 0)  {
+                work.set0(act.value);
+            }
+            if (act.field == 1) {
+                work.set1(act.value);
+            }
+            if (act.field == 2) {
+                work.set2(act.value);
+            }
+        }
+        else {
+        }
+    }
 }
