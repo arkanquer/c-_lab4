@@ -75,6 +75,6 @@ std::vector<descriptionAction> makeVector(const std::string& path) {
                 act.push_back({"string", -1, 0});
             }
         }
-        return act;
     }
+    return act;
 }
