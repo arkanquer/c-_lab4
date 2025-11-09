@@ -1,8 +1,11 @@
+#include <iostream>
 #include <mutex>
 #include <string>
 #include <sstream>
 #include <stdexcept>
 #include <shared_mutex>
+#include <vector>
+#include <fstream>
 
 class ThreeFields {
     mutable std::shared_mutex mu0, mu1, mu2;
@@ -45,3 +48,33 @@ public:
         return os.str();
     }
 };
+
+struct descriptionAction {
+    std::string nameAction;
+    int field, value;
+};
+std::vector<descriptionAction> makeVector(const std::string& path) {
+    std::ifstream file(path);
+    std::vector<descriptionAction> act;
+    std::string name;
+    while (file >> name) {
+        if (name == "read") {
+            int fieldIndex;
+            file >> fieldIndex;
+            if (fieldIndex == 0 || fieldIndex == 1 || fieldIndex == 2) {
+                act.push_back({"read", fieldIndex, 0});
+            }
+        }
+        if (name == "write") {
+            int fieldIndex, value;
+            file >> fieldIndex >> value;
+            if (fieldIndex == 0 || fieldIndex == 1 || fieldIndex == 2) {
+                act.push_back({"write", fieldIndex, 1});
+            }
+            if (name == "string") {
+                act.push_back({"string", -1, 0});
+            }
+        }
+        return act;
+    }
+}
