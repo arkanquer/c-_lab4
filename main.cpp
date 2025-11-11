@@ -4,6 +4,7 @@
 #include <shared_mutex>
 #include <fstream>
 #include <random>
+#include <thread>
 
 class ThreeFields {
     mutable std::shared_mutex mu0, mu1, mu2;
@@ -113,4 +114,12 @@ void process(ThreeFields& work, const std::string& text) {
             std::string str = work;
         }
     }
+}
+
+template<class F>
+long long measureTime(F&& func) {
+    auto time0 = std::chrono::steady_clock::now();
+    func();
+    auto time1 = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::microseconds>(time1 - time0).count();
 }
