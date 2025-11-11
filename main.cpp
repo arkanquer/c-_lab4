@@ -1,8 +1,6 @@
 #include <iostream>
-#include <mutex>
 #include <string>
 #include <sstream>
-#include <stdexcept>
 #include <shared_mutex>
 #include <vector>
 #include <fstream>
@@ -47,39 +45,40 @@ public:
     }
 };
 
-struct descriptionAction {
-    std::string nameAction;
-    int field, value;
+enum class actName {
+    Read, Write, String
 };
-std::vector<descriptionAction> makeVector(const std::string& path) {
+struct action {
+    actName name;
+    int field = -1;
+    int value = 0;
+};
+
+std::vector<action> makeVector(const std::string& path) {
     std::ifstream file(path);
-    std::vector<descriptionAction> act;
-    std::string name;
-    while (file >> name) {
-        if (name == "read") {
+    std::vector<action> acts;
+    std::string act;
+    while (file >> act) {
+        if (act == "read") {
             int fieldIndex;
             file >> fieldIndex;
-            if (fieldIndex == 0 || fieldIndex == 1 || fieldIndex == 2) {
-                act.push_back({"read", fieldIndex, 0});
-            }
+            acts.push_back({actName::Read, fieldIndex, 0});
         }
-        if (name == "write") {
+        else if (act == "write") {
             int fieldIndex, value;
             file >> fieldIndex >> value;
-            if (fieldIndex == 0 || fieldIndex == 1 || fieldIndex == 2) {
-                act.push_back({"write", fieldIndex, 1});
-            }
-            if (name == "string") {
-                act.push_back({"string", -1, 0});
-            }
+            acts.push_back({actName::Write, fieldIndex, value});
+        }
+        else if (act == "string") {
+            acts.push_back({actName::String, -1, 0});
         }
     }
-    return act;
+    return acts;
 }
 
-void process(ThreeFields& work, const std::vector<descriptionAction>& acts) {
+void process(ThreeFields& work, const std::vector<action>& acts) {
     for (const auto& act : acts) {
-        if (act.nameAction == "read") {
+        if (act.name == actName::Read) {
             if(act.field == 0) {
                 work.get0();
             }
@@ -90,7 +89,7 @@ void process(ThreeFields& work, const std::vector<descriptionAction>& acts) {
                 work.get2();
             }
         }
-        if (act.nameAction == "write") {
+        if (act.name == actName::Write) {
             if (act.field == 0)  {
                 work.set0(act.value);
             }
@@ -101,7 +100,7 @@ void process(ThreeFields& work, const std::vector<descriptionAction>& acts) {
                 work.set2(act.value);
             }
         }
-        else {
+        if (act.name == actName::String) {
         }
     }
 }
