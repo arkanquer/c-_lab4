@@ -2,8 +2,8 @@
 #include <string>
 #include <sstream>
 #include <shared_mutex>
-#include <vector>
 #include <fstream>
+#include <random>
 
 class ThreeFields {
     mutable std::shared_mutex mu0, mu1, mu2;
@@ -45,62 +45,72 @@ public:
     }
 };
 
-enum class actName {
-    Read, Write, String
-};
-struct action {
-    actName name;
-    int field = -1;
-    int value = 0;
-};
-
-std::vector<action> makeVector(const std::string& path) {
-    std::ifstream file(path);
-    std::vector<action> acts;
-    std::string act;
-    while (file >> act) {
-        if (act == "read") {
-            int fieldIndex;
-            file >> fieldIndex;
-            acts.push_back({actName::Read, fieldIndex, 0});
+void makeFile(const std::string& filepath, std::size_t totalActs,
+                   std::initializer_list<double> percents,
+                   uint64_t seed)
+{
+    std::ofstream out(filepath);
+    std::mt19937 gen(static_cast<uint32_t>(seed));
+    std::discrete_distribution choice(percents);
+    int value = 1;
+    for (std::size_t i = 0; i < totalActs; ++i) {
+        int k = choice(gen);
+        if (k == 0) {
+            out << "read 0\n";
         }
-        else if (act == "write") {
-            int fieldIndex, value;
-            file >> fieldIndex >> value;
-            acts.push_back({actName::Write, fieldIndex, value});
+        else if (k == 1) {
+            out << "write 0 " << value << '\n';
         }
-        else if (act == "string") {
-            acts.push_back({actName::String, -1, 0});
+        else if (k == 2) {
+            out << "read 1\n";
+        }
+        else if (k == 3) {
+            out << "write 1 " << value << '\n';
+        }
+        else if (k == 4) {
+            out << "read 2\n";
+        }
+        else if (k == 5) {
+            out << "write 2 " << value << '\n';
+        }
+        else {
+            out << "string\n";
         }
     }
-    return acts;
 }
 
-void process(ThreeFields& work, const std::vector<action>& acts) {
-    for (const auto& act : acts) {
-        if (act.name == actName::Read) {
-            if(act.field == 0) {
+void process(ThreeFields& work, const std::string& text) {
+    std::ifstream iss(text);
+    std::string name;
+    while (iss >> name) {
+        if (name == "read") {
+            int fieldIdx;
+            iss >> fieldIdx;
+            if(fieldIdx == 0) {
                 work.get0();
             }
-            if (act.field == 1) {
+            if (fieldIdx == 1) {
                 work.get1();
             }
-            if (act.field == 2) {
+            if (fieldIdx == 2) {
                 work.get2();
             }
         }
-        if (act.name == actName::Write) {
-            if (act.field == 0)  {
-                work.set0(act.value);
+        if (name == "write") {
+            int fieldIdx, value;
+            iss >> fieldIdx >> value;
+            if (fieldIdx == 0)  {
+                work.set0(value);
             }
-            if (act.field == 1) {
-                work.set1(act.value);
+            if (fieldIdx == 1) {
+                work.set1(value);
             }
-            if (act.field == 2) {
-                work.set2(act.value);
+            if (fieldIdx == 2) {
+                work.set2(value);
             }
         }
-        if (act.name == actName::String) {
+        if (name == "string") {
+            std::string str = work;
         }
     }
 }
