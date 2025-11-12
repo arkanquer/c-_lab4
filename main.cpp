@@ -123,3 +123,38 @@ long long measureTime(F&& func) {
     auto time1 = std::chrono::steady_clock::now();
     return std::chrono::duration_cast<std::chrono::microseconds>(time1 - time0).count();
 }
+std::string readFile(const std::string& path) {
+    std::ifstream file(path);
+    std::ostringstream os;
+    os << file.rdbuf();
+    return os.str();
+}
+long long runThreads(int threads, const std::string* txt1,
+                     cont std::string* txt2,const std::string* txt3)
+{
+    ThreeFields work(0,0,0);
+    return measureTime([&]{
+        if (threads == 1) {
+            std::thread t1([&] {
+                process(work, *txt1);
+            });
+            t1.join();
+        }
+        else if (threads == 2) {
+            std::thread t1([&] {
+                process(work, *txt2);
+            });
+            std::thread t2([&] {
+                process(work, *txt3);
+            });
+            t1.join(); t2.join();
+        }
+        else if (threads == 3) {
+            std::thread t1([&]{ process(work, *txt1); });
+            std::thread t2([&]{ process(work, *txt2); });
+            std::thread t3([&]{ process(work, *txt3); });
+            t1.join(); t2.join(); t3.join();
+        }
+    }
+    );
+}
