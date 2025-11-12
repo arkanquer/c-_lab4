@@ -11,6 +11,6 @@
 -- Check for working CXX compiler: /usr/bin/clang++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
--- Configuring done (0.8s)
+-- Configuring done (0.7s)
 -- Generating done (0.0s)
 -- Build files have been written to: /Users/yaroslavbyrak/CLionProjects/c-_lab4/cmake-build-debug

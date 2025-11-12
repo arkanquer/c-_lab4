@@ -81,7 +81,7 @@ void makeFile(const std::string& filepath, std::size_t totalActs,
 }
 
 void process(ThreeFields& work, const std::string& text) {
-    std::ifstream iss(text);
+    std::istringstream iss(text);
     std::string name;
     while (iss >> name) {
         if (name == "read") {
@@ -121,7 +121,7 @@ long long measureTime(F&& func) {
     auto time0 = std::chrono::steady_clock::now();
     func();
     auto time1 = std::chrono::steady_clock::now();
-    return std::chrono::duration_cast<std::chrono::microseconds>(time1 - time0).count();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(time1 - time0).count();
 }
 std::string readFile(const std::string& path) {
     std::ifstream file(path);
@@ -130,7 +130,7 @@ std::string readFile(const std::string& path) {
     return os.str();
 }
 long long runThreads(int threads, const std::string* txt1,
-                     cont std::string* txt2,const std::string* txt3)
+                     const std::string* txt2,const std::string* txt3)
 {
     ThreeFields work(0,0,0);
     return measureTime([&]{
@@ -142,10 +142,10 @@ long long runThreads(int threads, const std::string* txt1,
         }
         else if (threads == 2) {
             std::thread t1([&] {
-                process(work, *txt2);
+                process(work, *txt1);
             });
             std::thread t2([&] {
-                process(work, *txt3);
+                process(work, *txt2);
             });
             t1.join(); t2.join();
         }
@@ -157,4 +157,36 @@ long long runThreads(int threads, const std::string* txt1,
         }
     }
     );
+}
+
+void measureThreads(const std::string& name,
+                   std::initializer_list<double> percents,
+                   std::size_t acts, uint64_t seed_base = 1234567)
+{
+    makeFile(name + ".thread1.txt", acts, percents, seed_base + 11);
+    std::string exp1_1 = readFile(name + ".thread1.txt");
+    long long time1 = runThreads(1, &exp1_1, nullptr, nullptr);
+
+    makeFile(name + ".thread1.txt", acts, percents, seed_base + 21);
+    makeFile(name + ".thread2.txt", acts, percents, seed_base + 22);
+    std::string exp2_1 = readFile(name + ".thread1.txt");
+    std::string exp2_2 = readFile(name + ".thread2.txt");
+    long long time2 = runThreads (2, &exp2_1, &exp2_2, nullptr);
+
+    makeFile(name + ".thread1.txt", acts, percents, seed_base + 31);
+    makeFile(name + ".thread2.txt", acts, percents, seed_base + 32);
+    makeFile(name + ".thread3.txt", acts, percents, seed_base + 33);
+    std::string exp3_1 = readFile(name + ".thread1.txt");
+    std::string exp3_2 = readFile(name + ".thread2.txt");
+    std::string exp3_3 = readFile(name + ".thread3.txt");
+    long long time3 = runThreads(3, &exp3_1, &exp3_2, &exp3_3);
+    std::cout << name << " " << time1 << "ms " << time2 << "ms " << time3 << "ms\n";
+}
+
+int main() {
+    const std::size_t acts = 500'000;
+    measureThreads("Var6Condition", {20,5, 20,5, 20,5, 25}, acts);
+    measureThreads("EqualCondition", {16.6,16.6, 16.6,16.6, 16.6,16.6, 16.6}, acts);
+    measureThreads("AnotherCondition", {1,40, 1,40, 1,7, 10}, acts);
+    return 0;
 }
