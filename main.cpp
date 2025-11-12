@@ -79,7 +79,6 @@ void makeFile(const std::string& filepath, std::size_t totalActs,
         }
     }
 }
-
 void process(ThreeFields& work, const std::string& text) {
     std::istringstream iss(text);
     std::string name;
@@ -115,7 +114,6 @@ void process(ThreeFields& work, const std::string& text) {
         }
     }
 }
-
 template<class F>
 long long measureTime(F&& func) {
     auto time0 = std::chrono::steady_clock::now();
@@ -185,8 +183,8 @@ void measureThreads(const std::string& name,
 
 int main() {
     const std::size_t acts = 500'000;
-    measureThreads("Var6Condition", {20,5, 20,5, 20,5, 25}, acts);
-    measureThreads("EqualCondition", {16.6,16.6, 16.6,16.6, 16.6,16.6, 16.6}, acts);
+    measureThreads("Var6Condition", {20, 5, 20, 5, 20, 5, 25}, acts);
+    measureThreads("EqualCondition", {1, 1, 1, 1, 1, 1, 1}, acts);
     measureThreads("AnotherCondition", {1,40, 1,40, 1,7, 10}, acts);
     return 0;
 }
